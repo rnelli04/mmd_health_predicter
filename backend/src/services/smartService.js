@@ -14,7 +14,7 @@ function getRawSmartData() {
             deviceConfig.getSelectedDevice();
 
         exec(
-            `sudo smartctl -a ${device}`,
+            `smartctl -a ${device}`,
             (error, stdout, stderr) => {
 
                 console.log("ERROR:", error);
@@ -38,7 +38,7 @@ async function getAvailableDrives() {
     return new Promise((resolve, reject) => {
 
         exec(
-            "sudo smartctl --scan",
+            "smartctl --scan",
             async (error, stdout) => {
 
                 if (error) {
@@ -389,7 +389,7 @@ function getDriveInfo(device) {
     return new Promise((resolve, reject) => {
 
         exec(
-            `sudo smartctl -i ${device}`,
+            `smartctl -i ${device}`,
             (error, stdout) => {
 
                 if (error) {

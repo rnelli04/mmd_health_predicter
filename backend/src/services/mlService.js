@@ -11,7 +11,7 @@ function getFailurePrediction(smartData) {
                 );
 
             exec(
-                `/home/segv/Desktop/internship/backend/.venv/bin/python ml/predict.py '${payload}'`,
+                `python ml/predict2.py '${payload}'`,
                 (error, stdout, stderr) => {
 
                     if (error) {
