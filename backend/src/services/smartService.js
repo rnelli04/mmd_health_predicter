@@ -61,6 +61,15 @@ async function getAvailableDrives() {
                         const driveInfo =
                             await getDriveInfo(device);
 
+                        const driveType =
+                            driveInfo.type;
+
+                        const isSSD =
+                            driveInfo.isSSD;
+
+                        const isHDD =
+                            driveInfo.isHDD;
+
                         drives.push(driveInfo);
                     }
 
@@ -83,8 +92,28 @@ async function getSmartSummary() {
 
     const rawData = await getRawSmartData();
 
+    const device =
+        deviceConfig.getSelectedDevice();
+
+    const driveInfo =
+        await getDriveInfo(device);
+
+    const driveType =
+        driveInfo.type;
+
+    const isSSD =
+        driveInfo.isSSD;
+
+    const isHDD =
+        driveInfo.isHDD;
+
     const modelMatch =
-        rawData.match(/Device Model:\s+([^\n]+)/);
+        rawData.match(
+            /Device Model:\s+([^\n]+)/
+        ) ||
+        rawData.match(
+            /Model Number:\s+([^\n]+)/
+        );
 
     const tempMatch =
         rawData.match(/Temperature_Celsius.*?-\s+(\d+)/);
@@ -127,72 +156,235 @@ async function getSmartSummary() {
 
     const crcMatch =
         rawData.match(/UDMA_CRC_Error_Count.*?-\s+(\d+)/);
+    
+    const criticalWarningMatch =
+        rawData.match(
+            /Critical Warning:\s+0x([0-9A-Fa-f]+)/
+        );
+
+    const availableSpareMatch =
+        rawData.match(
+            /Available Spare:\s+(\d+)/
+        );
+
+    const availableSpareThresholdMatch =
+        rawData.match(
+            /Available Spare Threshold:\s+(\d+)/
+        );
+
+    const percentageUsedMatch =
+        rawData.match(
+            /Percentage Used:\s+(\d+)/
+        );
+
+    const unsafeShutdownsMatch =
+        rawData.match(
+            /Unsafe Shutdowns:\s+(\d+)/
+        );
+
+    const mediaErrorsMatch =
+        rawData.match(
+            /Media and Data Integrity Errors:\s+(\d+)/
+        );
+
+    const dataUnitsReadMatch =
+        rawData.match(
+            /Data Units Read:\s+([\d,]+)/
+        );
+
+    const dataUnitsWrittenMatch =
+        rawData.match(
+            /Data Units Written:\s+([\d,]+)/
+        );
+
+    const nvmeTempMatch =
+        rawData.match(
+            /Temperature:\s+(\d+)/
+        );
+
+    const nvmePowerOnMatch =
+        rawData.match(
+            /Power On Hours:\s+(\d+)/
+        );
 
     console.log("TEMP MATCH:", tempMatch);
     console.log("POWER MATCH:", powerOnMatch);
 
     const summary = {
+
+        driveType,
+        isSSD,
+        isHDD,
+
         model: modelMatch
-        ? modelMatch[1].trim()
-        : "Unknown",
+            ? modelMatch[1].trim()
+            : driveInfo.model,
 
-        temperature: tempMatch
-            ? Number(tempMatch[1])
-            : null,
+        temperature:
 
-        powerOnHours: powerOnMatch
-            ? Number(powerOnMatch[1])
-            : null,
+            driveType === "NVMe SSD"
 
-        rawReadErrorRate: rawReadMatch
-            ? Number(rawReadMatch[1])
-            : 0,
+                ? (
+                    nvmeTempMatch
+                        ? Number(nvmeTempMatch[1])
+                        : null
+                )
 
-        spinUpTime: spinUpMatch
-            ? Number(spinUpMatch[1])
-            : 0,
+                : (
+                    tempMatch
+                        ? Number(tempMatch[1])
+                        : null
+                ),
 
-        startStopCount: startStopMatch
-            ? Number(startStopMatch[1])
-            : 0,
+        powerOnHours:
 
-        reallocatedSectors: reallocatedMatch
-            ? Number(reallocatedMatch[1])
-            : 0,
+            driveType === "NVMe SSD"
 
-        seekErrorRate: seekErrorMatch
-            ? Number(seekErrorMatch[1])
-            : 0,
+                ? (
+                    rawData.match(
+                        /Power On Hours:\s+(\d+)/
+                    )
+                        ? Number(
+                            rawData.match(
+                                /Power On Hours:\s+(\d+)/
+                            )[1]
+                        )
+                        : 0
+                )
 
-        spinRetryCount: spinRetryMatch
-            ? Number(spinRetryMatch[1])
-            : 0,
+                : (
+                    powerOnMatch
+                        ? Number(powerOnMatch[1])
+                        : 0
+                ),
 
-        powerCycleCount: powerCycleMatch
-            ? Number(powerCycleMatch[1])
-            : 0,
+        // HDD ATTRIBUTES
 
-        reportedUncorrect: reportedUncorrectMatch
-            ? Number(reportedUncorrectMatch[1])
-            : 0,
+        rawReadErrorRate:
+            rawReadMatch
+                ? Number(rawReadMatch[1])
+                : 0,
 
-        loadCycleCount: loadCycleMatch
-            ? Number(loadCycleMatch[1])
-            : 0,
+        spinUpTime:
+            spinUpMatch
+                ? Number(spinUpMatch[1])
+                : 0,
 
-        pendingSectors: pendingMatch
-            ? Number(pendingMatch[1])
-            : 0,
+        startStopCount:
+            startStopMatch
+                ? Number(startStopMatch[1])
+                : 0,
 
-        offlineUncorrectable: offlineMatch
-            ? Number(offlineMatch[1])
-            : 0,
+        reallocatedSectors:
+            reallocatedMatch
+                ? Number(reallocatedMatch[1])
+                : 0,
 
-        crcErrorCount: crcMatch
-            ? Number(crcMatch[1])
-            : 0
+        seekErrorRate:
+            seekErrorMatch
+                ? Number(seekErrorMatch[1])
+                : 0,
+
+        spinRetryCount:
+            spinRetryMatch
+                ? Number(spinRetryMatch[1])
+                : 0,
+
+        powerCycleCount:
+            powerCycleMatch
+                ? Number(powerCycleMatch[1])
+                : 0,
+
+        reportedUncorrect:
+            reportedUncorrectMatch
+                ? Number(reportedUncorrectMatch[1])
+                : 0,
+
+        loadCycleCount:
+            loadCycleMatch
+                ? Number(loadCycleMatch[1])
+                : 0,
+
+        pendingSectors:
+            pendingMatch
+                ? Number(pendingMatch[1])
+                : 0,
+
+        offlineUncorrectable:
+            offlineMatch
+                ? Number(offlineMatch[1])
+                : 0,
+
+        crcErrorCount:
+            crcMatch
+                ? Number(crcMatch[1])
+                : 0,
+
+        // SSD ATTRIBUTES
+
+        criticalWarning:
+            criticalWarningMatch
+                ? parseInt(
+                    criticalWarningMatch[1],
+                    16
+                )
+                : 0,
+
+        availableSpare:
+            availableSpareMatch
+                ? Number(
+                    availableSpareMatch[1]
+                )
+                : 0,
+
+        availableSpareThreshold:
+            availableSpareThresholdMatch
+                ? Number(
+                    availableSpareThresholdMatch[1]
+                )
+                : 0,
+
+        percentageUsed:
+            percentageUsedMatch
+                ? Number(
+                    percentageUsedMatch[1]
+                )
+                : 0,
+
+        unsafeShutdowns:
+            unsafeShutdownsMatch
+                ? Number(
+                    unsafeShutdownsMatch[1]
+                )
+                : 0,
+
+        mediaErrors:
+            mediaErrorsMatch
+                ? Number(
+                    mediaErrorsMatch[1]
+                )
+                : 0,
+
+        dataUnitsRead:
+            dataUnitsReadMatch
+                ? Number(
+                    dataUnitsReadMatch[1]
+                        .replace(/,/g, "")
+                )
+                : 0,
+
+        dataUnitsWritten:
+            dataUnitsWrittenMatch
+                ? Number(
+                    dataUnitsWrittenMatch[1]
+                        .replace(/,/g, "")
+                )
+                : 0
     };
 
+    console.log("isSSD =", summary.isSSD);
+    console.log("isHDD =", summary.isHDD);
+    console.log("driveType =", summary.driveType);
     const failure =
         healthService.calculateFailureScore(summary);
 
@@ -222,50 +414,60 @@ async function getSmartSummary() {
     const mlService =
         require("./mlService");
 
-    const prediction =
-        await mlService.getFailurePrediction({
-            rawReadErrorRate:
-                summary.rawReadErrorRate,
+    let prediction = {
+        prediction: "Not Available",
+        failureProbability: 0
+    };
 
-            spinUpTime:
-                summary.spinUpTime,
+    if (isHDD) {
 
-            startStopCount:
-                summary.startStopCount,
+        prediction =
+            await mlService.getFailurePrediction({
 
-            reallocatedSectors:
-                summary.reallocatedSectors,
+                rawReadErrorRate:
+                    summary.rawReadErrorRate,
 
-            seekErrorRate:
-                summary.seekErrorRate,
+                spinUpTime:
+                    summary.spinUpTime,
 
-            powerOnHours:
-                summary.powerOnHours,
+                startStopCount:
+                    summary.startStopCount,
 
-            spinRetryCount:
-                summary.spinRetryCount,
+                reallocatedSectors:
+                    summary.reallocatedSectors,
 
-            powerCycleCount:
-                summary.powerCycleCount,
+                seekErrorRate:
+                    summary.seekErrorRate,
 
-            reportedUncorrect:
-                summary.reportedUncorrect,
+                powerOnHours:
+                    summary.powerOnHours,
 
-            loadCycleCount:
-                summary.loadCycleCount,
+                spinRetryCount:
+                    summary.spinRetryCount,
 
-            temperature:
-                summary.temperature,
+                powerCycleCount:
+                    summary.powerCycleCount,
 
-            pendingSectors:
-                summary.pendingSectors,
+                reportedUncorrect:
+                    summary.reportedUncorrect,
 
-            offlineUncorrectable:
-                summary.offlineUncorrectable,
+                loadCycleCount:
+                    summary.loadCycleCount,
 
-            crcErrorCount:
-                summary.crcErrorCount
-        });
+                temperature:
+                    summary.temperature,
+
+                pendingSectors:
+                    summary.pendingSectors,
+
+                offlineUncorrectable:
+                    summary.offlineUncorrectable,
+
+                crcErrorCount:
+                    summary.crcErrorCount
+            });
+
+    }
 
     return {
         ...summary,
@@ -300,10 +502,19 @@ async function saveSnapshot() {
     db.run(
         `
         INSERT INTO smart_logs (
+
+            drive_type,
+
             model,
+
             health_score,
+
+            failure_probability,
+
             temperature,
+
             power_on_hours,
+
             raw_read_error_rate,
             spin_up_time,
             start_stop_count,
@@ -316,28 +527,76 @@ async function saveSnapshot() {
             pending_sectors,
             offline_uncorrectable,
             crc_error_count,
-            failure_probability
+
+            critical_warning,
+            available_spare,
+            available_spare_threshold,
+            percentage_used,
+            unsafe_shutdowns,
+            media_errors,
+            data_units_read,
+            data_units_written
+
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?
+        )
         `,
         [
+
+            summary.driveType,
+
             summary.model,
+
             summary.health.healthScore,
+
             summary.mlPrediction.failureProbability,
+
             summary.temperature,
+
             summary.powerOnHours,
+
             summary.rawReadErrorRate,
+
             summary.spinUpTime,
+
             summary.startStopCount,
+
             summary.reallocatedSectors,
+
             summary.seekErrorRate,
+
             summary.spinRetryCount,
+
             summary.powerCycleCount,
+
             summary.reportedUncorrect,
+
             summary.loadCycleCount,
+
             summary.pendingSectors,
+
             summary.offlineUncorrectable,
-            summary.crcErrorCount
+
+            summary.crcErrorCount,
+
+            summary.criticalWarning,
+
+            summary.availableSpare,
+
+            summary.availableSpareThreshold,
+
+            summary.percentageUsed,
+
+            summary.unsafeShutdowns,
+
+            summary.mediaErrors,
+
+            summary.dataUnitsRead,
+
+            summary.dataUnitsWritten
+
         ],
         (err) => {
 
@@ -369,6 +628,7 @@ function getSmartHistory() {
             ORDER BY timestamp DESC
             `,
             [],
+
             (err, rows) => {
 
                 if (err) {
@@ -411,17 +671,84 @@ function getDriveInfo(device) {
 
                 let type = "HDD";
 
+                const lowerOutput =
+                    stdout.toLowerCase();
+
                 if (
-                    stdout.includes("NVMe")
+                    lowerOutput.includes("nvme")
                 ) {
+
                     type = "NVMe SSD";
+
+                }
+                else if (
+
+                    lowerOutput.includes("ssd") ||
+
+                    model.toLowerCase().includes("ssd")
+
+                ) {
+
+                    type = "SATA SSD";
+
                 }
 
                 resolve({
                     device,
                     model,
-                    type
+                    type,
+
+                    isSSD:
+                        type.includes("SSD"),
+
+                    isHDD:
+                        type === "HDD"
                 });
+
+            }
+        );
+
+    });
+
+}
+
+async function getHealthTrends() {
+
+    return new Promise((resolve, reject) => {
+
+        db.all(
+            `
+            SELECT
+                timestamp,
+                health_score,
+                temperature
+            FROM smart_logs
+            ORDER BY timestamp ASC
+            `,
+            [],
+            (err, rows) => {
+
+                if (err) {
+                    reject(err.message);
+                    return;
+                }
+
+                resolve(
+
+                    rows.map(row => ({
+
+                        timestamp:
+                            row.timestamp,
+
+                        healthScore:
+                            row.health_score,
+
+                        temperature:
+                            row.temperature
+
+                    }))
+
+                );
 
             }
         );
@@ -435,5 +762,6 @@ module.exports = {
     getRawSmartData,
     getSmartSummary,
     getSmartHistory,
-    saveSnapshot
+    saveSnapshot,
+    getHealthTrends
 };

@@ -30,4 +30,9 @@ router.get(
     smartController.getSmartHistory
 );
 
+router.get(
+    "/trends",
+    smartController.getHealthTrends
+);
+
 module.exports = router;

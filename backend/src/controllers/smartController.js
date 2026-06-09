@@ -94,10 +94,30 @@ async function getSmartHistory(req, res) {
 
 }
 
+async function getHealthTrends(req, res) {
+
+    try {
+
+        const trends =
+            await smartService.getHealthTrends();
+
+        res.json(trends);
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
+
+    }
+
+}
+
 module.exports = {
     getAvailableDrives,
     selectDrive,
     getRawSmartData,
     getSmartSummary,
-    getSmartHistory
+    getSmartHistory,
+    getHealthTrends
 };
