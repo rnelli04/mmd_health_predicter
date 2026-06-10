@@ -9,10 +9,13 @@ import Header from './Header';
 import OverviewCards from './OverviewCards';
 import DriveInfo from './DriveInfo';
 import DriveMetrics from './DriveMetrics';
+import FailureExplanation from './FailureExplanation';
 import AlertsPanel from './AlertsPanel';
 import Recommendations from './Recommendations';
 import HealthTrendChart from './HealthTrendChart';
 import TempTrendChart from './TempTrendChart';
+import DriveComparison from './DriveComparison';
+import ExportReport from './ExportReport';
 import Footer from './Footer';
 
 export default function Dashboard() {
@@ -114,14 +117,17 @@ export default function Dashboard() {
               <div className="lg:col-span-2 space-y-6">
                 <DriveInfo summary={summary} />
                 <DriveMetrics summary={summary} />
+                <FailureExplanation summary={summary} />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <HealthTrendChart trends={trends} />
                   <TempTrendChart trends={trends} />
                 </div>
+                <DriveComparison />
               </div>
               <div className="space-y-6">
                 <AlertsPanel alerts={summary.health?.alerts || []} />
                 <Recommendations summary={summary} />
+                <ExportReport summary={summary} />
               </div>
             </div>
 
