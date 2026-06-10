@@ -350,6 +350,14 @@ async function getSmartSummary() {
                     percentageUsedMatch[1]
                 )
                 : 0,
+        
+        enduranceRemaining:
+            percentageUsedMatch
+                ? Math.max(
+                    0,
+                    100 - Number(percentageUsedMatch[1])
+                )
+                : null,
 
         unsafeShutdowns:
             unsafeShutdownsMatch
@@ -405,6 +413,17 @@ async function getSmartSummary() {
         status = "Bad";
     else
         status = "Critical";
+
+    let healthCategory;
+
+    if (healthScore >= 90)
+        healthCategory = "Healthy";
+    else if (healthScore >= 75)
+        healthCategory = "Warning";
+    else if (healthScore >= 50)
+        healthCategory = "Degraded";
+    else
+        healthCategory = "Critical";
 
     const alerts = [
         ...failure.alerts,
@@ -475,6 +494,7 @@ async function getSmartSummary() {
         health: {
             healthScore,
             status,
+            healthCategory,
 
             breakdown: {
                 failureScore: failure.failureScore,
