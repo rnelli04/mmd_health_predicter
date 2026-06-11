@@ -32,7 +32,9 @@ export default function Dashboard() {
       const data = await getAvailableDrives();
       setDrives(data);
       if (data.length > 0 && !selectedDevice) {
-        setSelectedDevice(data[0].device);
+        const firstDevice = data[0].device;
+        await selectDrive(firstDevice);
+        setSelectedDevice(firstDevice);
       }
     } catch (err) {
       setError('Failed to fetch drives');
@@ -68,9 +70,9 @@ export default function Dashboard() {
   }, [selectedDevice, fetchDashboard]);
 
   const handleDriveChange = async (device) => {
-    setSelectedDevice(device);
     try {
       await selectDrive(device);
+      setSelectedDevice(device);
     } catch (err) {
       setError('Failed to select drive');
     }
